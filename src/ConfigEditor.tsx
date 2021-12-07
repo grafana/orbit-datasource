@@ -10,11 +10,11 @@ interface Props extends DataSourcePluginOptionsEditorProps<OrbitDataSourceOption
 interface State {}
 
 export class ConfigEditor extends PureComponent<Props, State> {
-  onWorkspaceChange = (event: ChangeEvent<HTMLInputElement>) => {
+  onWorkspacePathChange = (event: ChangeEvent<HTMLInputElement>) => {
     const { onOptionsChange, options } = this.props;
     const jsonData = {
       ...options.jsonData,
-      workspace: event.target.value,
+      workspacePath: event.target.value,
     };
     onOptionsChange({ ...options, jsonData });
   };
@@ -53,11 +53,11 @@ export class ConfigEditor extends PureComponent<Props, State> {
       <div className="gf-form-group">
         <div className="gf-form">
           <FormField
-            label="Workspace"
-            labelWidth={6}
+            label="Workspace path"
+            labelWidth={8}
             inputWidth={20}
-            onChange={this.onWorkspaceChange}
-            value={jsonData.workspace || ''}
+            onChange={this.onWorkspacePathChange}
+            value={jsonData.workspacePath || ''}
           />
         </div>
 
@@ -67,7 +67,7 @@ export class ConfigEditor extends PureComponent<Props, State> {
               isConfigured={(secureJsonFields && secureJsonFields.apiToken) as boolean}
               value={secureJsonData.apiToken || ''}
               label="API token"
-              labelWidth={6}
+              labelWidth={8}
               inputWidth={20}
               onReset={this.onResetAPIToken}
               onChange={this.onAPITokenChange}

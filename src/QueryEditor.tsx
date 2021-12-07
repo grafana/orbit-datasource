@@ -7,6 +7,7 @@ import {
   FilterPill,
   HorizontalGroup,
   AsyncMultiSelect,
+  InlineSwitch,
 } from '@grafana/ui';
 import { QueryEditorProps, SelectableValue } from '@grafana/data';
 import { DataSource } from './datasource';
@@ -25,7 +26,7 @@ export const QueryEditor = (props: Props) => {
   return (
     <>
       <InlineFieldRow>
-        <InlineField label="Analyze" labelWidth={14}>
+        <InlineField label="Metric" labelWidth={14}>
           <RadioButtonGroup
             value={query.analyze}
             onChange={(value) => {
@@ -33,16 +34,20 @@ export const QueryEditor = (props: Props) => {
               onRunQuery();
             }}
             options={[
-              { label: 'Members', value: 'members' },
+              { label: 'Active members', value: 'members' },
               { label: 'Activities', value: 'activities' },
             ]}
           />
         </InlineField>
+        <div className="gf-form--grow">
+          <div className="gf-form-label gf-form-label--grow"></div>
+        </div>
       </InlineFieldRow>
       <InlineFieldRow>
         <InlineField label="Group by" labelWidth={14}>
           <Select
-            width={18}
+            placeholder="No grouping"
+            width={20}
             value={query.groupBy}
             onChange={(value) => {
               onChange({ ...query, groupBy: value?.value });
@@ -63,34 +68,35 @@ export const QueryEditor = (props: Props) => {
             ]}
           />
         </InlineField>
-        <InlineField label="Group limit" labelWidth={14}>
+        {query.groupBy && (
+          <InlineField label="Limit" labelWidth={8}>
+            <Select
+              width={14}
+              value={query.groupLimit}
+              onChange={(value) => {
+                onChange({ ...query, groupLimit: value?.value });
+                onRunQuery();
+              }}
+              options={[
+                { label: '5', value: '5' },
+                { label: '10', value: '10' },
+                { label: '25', value: '25' },
+                { label: '50', value: '50' },
+              ]}
+            />
+          </InlineField>
+        )}
+        <InlineField label="Period" labelWidth={8}>
           <Select
-            width={14}
-            value={query.groupLimit}
-            isClearable={true}
-            onChange={(value) => {
-              onChange({ ...query, groupLimit: value?.value });
-              onRunQuery();
-            }}
-            options={[
-              { label: '5', value: '5' },
-              { label: '10', value: '10' },
-              { label: '25', value: '25' },
-              { label: '50', value: '50' },
-            ]}
-          />
-        </InlineField>
-      </InlineFieldRow>
-      <InlineFieldRow>
-        <InlineField label="Interval" labelWidth={14}>
-          <RadioButtonGroup
             value={query.interval ?? 'century'}
             onChange={(interval) => {
-              onChange({ ...query, interval });
-              onRunQuery();
+              if (interval?.value) {
+                onChange({ ...query, interval: interval.value });
+                onRunQuery();
+              }
             }}
             options={[
-              { label: 'Default', value: 'century' },
+              { label: 'All time', value: 'century' },
               { label: 'Daily', value: 'day' },
               { label: 'Weekly', value: 'week' },
               { label: 'Monthly', value: 'month' },
@@ -98,6 +104,23 @@ export const QueryEditor = (props: Props) => {
             ]}
           />
         </InlineField>
+        <div className="gf-form--grow">
+          <div className="gf-form-label gf-form-label--grow"></div>
+        </div>
+      </InlineFieldRow>
+      <InlineFieldRow>
+        <InlineField label="Cumulative" labelWidth={14}>
+          <InlineSwitch
+            value={!!props.query.cumulative}
+            onChange={(value) => {
+              onChange({ ...query, cumulative: value.currentTarget.checked });
+              onRunQuery();
+            }}
+          />
+        </InlineField>
+        <div className="gf-form--grow">
+          <div className="gf-form-label gf-form-label--grow"></div>
+        </div>
       </InlineFieldRow>
       <InlineFieldRow>
         <InlineField label="Orbit levels" labelWidth={14}>
@@ -159,6 +182,9 @@ export const QueryEditor = (props: Props) => {
             />
           </HorizontalGroup>
         </InlineField>
+        <div className="gf-form--grow">
+          <div className="gf-form-label gf-form-label--grow"></div>
+        </div>
       </InlineFieldRow>
       <InlineFieldRow>
         <InlineField label="Affiliation" labelWidth={14}>
@@ -175,6 +201,9 @@ export const QueryEditor = (props: Props) => {
             ]}
           />
         </InlineField>
+        <div className="gf-form--grow">
+          <div className="gf-form-label gf-form-label--grow"></div>
+        </div>
       </InlineFieldRow>
       <InlineFieldRow>
         <InlineField label="New/returning" labelWidth={14}>
@@ -203,18 +232,22 @@ export const QueryEditor = (props: Props) => {
             ]}
           />
         </InlineField>
+        <div className="gf-form--grow">
+          <div className="gf-form-label gf-form-label--grow"></div>
+        </div>
       </InlineFieldRow>
       <InlineFieldRow>
         <InlineField label="Activity types" labelWidth={14}>
           <AsyncMultiSelect
-            width={48}
+            placeholder="All activity types"
+            width={62}
             value={
               props.query.activityTypes?.map<SelectableValue<string>>((activityType) => ({
                 label: activityType,
                 value: activityType,
               })) ?? []
             }
-            onChange={(values: SelectableValue<string>[]) => {
+            onChange={(values: Array<SelectableValue<string>>) => {
               onChange({ ...query, activityTypes: values.map((value) => value.value!) });
               onRunQuery();
             }}
@@ -222,7 +255,7 @@ export const QueryEditor = (props: Props) => {
             loadOptions={async (query) => {
               const options = await getBackendSrv()
                 .fetch<any>({
-                  url: `/api/datasources/${props.datasource.id}/resources`,
+                  url: `/api/datasources/${props.datasource.id}/resources/activity-types`,
                 })
                 .pipe(
                   map((response) => {
@@ -238,6 +271,9 @@ export const QueryEditor = (props: Props) => {
             }}
           />
         </InlineField>
+        <div className="gf-form--grow">
+          <div className="gf-form-label gf-form-label--grow"></div>
+        </div>
       </InlineFieldRow>
     </>
   );
