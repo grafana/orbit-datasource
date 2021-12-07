@@ -1,0 +1,32 @@
+{
+  "$schema": "https://raw.githubusercontent.com/grafana/grafana/master/docs/sources/developers/plugins/plugin.schema.json",
+  "type": "datasource",
+  "name": "Orbit",
+  "id": "grafana-orbit-datasource",
+  "metrics": true,
+  "backend": true,
+  "executable": "gpx_orbit_datasource",
+
+  "info": {
+    "description": "A data source for Orbit.",
+    "author": {
+      "name": "Grafana Labs"
+    },
+    "keywords": ["orbit", "community"],
+    "logos": {
+      "small": "img/logo.svg",
+      "large": "img/logo.svg"
+    },
+    "links": [
+      { "name": "Website", "url": "https://github.com/grafana/orbit-datasource" },
+      { "name": "License", "url": "https://github.com/grafana/orbit-datasource/blob/main/LICENSE" }
+    ],
+    "screenshots": [],
+    "version": "%VERSION%",
+    "updated": "%TODAY%"
+  },
+  "dependencies": {
+    "grafanaDependency": ">=8.0.0",
+    "plugins": []
+  }
+}
