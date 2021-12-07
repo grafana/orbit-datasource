@@ -11,15 +11,17 @@ export interface OrbitQuery extends DataQuery {
   groupLimit?: string;
   orbits?: Orbits[];
   activityTypes?: string[];
+  cumulative?: boolean;
 }
 
 export const defaultQuery: Partial<OrbitQuery> = {
   analyze: 'members',
   interval: 'week',
+  groupLimit: '10',
 };
 
 export interface OrbitDataSourceOptions extends DataSourceJsonData {
-  workspace?: string;
+  workspacePath?: string;
 }
 
 export interface OrbitSecureJsonData {

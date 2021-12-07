@@ -1,10 +1,11 @@
 {
-  "$schema": "https://raw.githubusercontent.com/grafana/grafana/master/docs/sources/developers/plugins/plugin.schema.json",
+  "$schema": "https://raw.githubusercontent.com/grafana/grafana/main/docs/sources/developers/plugins/plugin.schema.json",
   "type": "datasource",
   "name": "Orbit",
   "id": "grafana-orbit-datasource",
   "metrics": true,
   "backend": true,
+  "alerting": true,
   "executable": "gpx_orbit_datasource",
 
   "info": {
@@ -21,7 +22,7 @@
       { "name": "Website", "url": "https://github.com/grafana/orbit-datasource" },
       { "name": "License", "url": "https://github.com/grafana/orbit-datasource/blob/main/LICENSE" }
     ],
-    "screenshots": [],
+    "screenshots": [{ "name": "Pulse dashboard", "path": "img/screenshot.png" }],
     "version": "%VERSION%",
     "updated": "%TODAY%"
   },

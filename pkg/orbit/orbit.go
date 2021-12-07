@@ -68,10 +68,11 @@ type FigureQuery struct {
 	GroupLimit    string   `json:"groupLimit"`
 	Orbits        []string `json:"orbits"`
 	ActivityTypes []string `json:"activityTypes"`
+	Cumulative    bool     `json:"cumulative"`
 }
 
-func (c *Client) Test() (int, error) {
-	req, err := http.NewRequest("GET", fmt.Sprintf("https://app.orbit.love/%s/figures/new.json", c.workspace), nil)
+func (c *Client) Test(ctx context.Context) (int, error) {
+	req, err := http.NewRequestWithContext(ctx, "GET", fmt.Sprintf("https://app.orbit.love/%s/figures/new.json", c.workspace), nil)
 	if err != nil {
 		return 0, err
 	}
@@ -93,7 +94,7 @@ func (c *Client) Test() (int, error) {
 }
 
 func (c *Client) Figure(ctx context.Context, startDate, endDate string, figureQuery FigureQuery) (*Figure, error) {
-	req, err := http.NewRequest("GET", fmt.Sprintf("https://app.orbit.love/%s/figures/new.json", c.workspace), nil)
+	req, err := http.NewRequestWithContext(ctx, "GET", fmt.Sprintf("https://app.orbit.love/%s/figures/new.json", c.workspace), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -102,7 +103,11 @@ func (c *Client) Figure(ctx context.Context, startDate, endDate string, figureQu
 	query.Set("start_date", startDate)
 	query.Set("end_date", endDate)
 	query.Set("figure_data", figureQuery.Analyze)
-	query.Set("interval", figureQuery.Interval)
+	query.Set("group_by", figureQuery.Interval)
+
+	if figureQuery.Cumulative {
+		query.Set("cumulative", "true")
+	}
 
 	if len(figureQuery.Orbits) > 0 {
 		query.Set("orbit", strings.Join(figureQuery.Orbits, ""))
@@ -164,8 +169,8 @@ type ActivityType struct {
 	} `json:"attributes,omitempty"`
 }
 
-func (c *Client) ActivityTypes() ([]ActivityType, error) {
-	req, err := http.NewRequest("GET", fmt.Sprintf("https://app.orbit.love/api/v1/%s/activity_types", c.workspace), nil)
+func (c *Client) ActivityTypes(ctx context.Context) ([]ActivityType, error) {
+	req, err := http.NewRequestWithContext(ctx, "GET", fmt.Sprintf("https://app.orbit.love/api/v1/%s/activity_types", c.workspace), nil)
 	if err != nil {
 		return nil, err
 	}

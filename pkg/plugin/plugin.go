@@ -11,16 +11,17 @@ import (
 	"github.com/grafana/grafana-plugin-sdk-go/backend"
 	"github.com/grafana/grafana-plugin-sdk-go/backend/instancemgmt"
 	"github.com/grafana/grafana-plugin-sdk-go/data"
-	"github.com/marcusolsson/grafana-orbit-datasource/pkg/orbit"
+	"github.com/grafana/orbit-datasource/pkg/orbit"
 )
 
 var (
-	_ backend.QueryDataHandler      = (*OrbitDatasource)(nil)
-	_ backend.CheckHealthHandler    = (*OrbitDatasource)(nil)
-	_ instancemgmt.InstanceDisposer = (*OrbitDatasource)(nil)
-	_ backend.CallResourceHandler   = (*OrbitDatasource)(nil)
+	_ backend.QueryDataHandler    = (*OrbitDatasource)(nil)
+	_ backend.CheckHealthHandler  = (*OrbitDatasource)(nil)
+	_ backend.CallResourceHandler = (*OrbitDatasource)(nil)
 )
 
+// queryModel represents the query that's constructed by the query editor and
+// sent by the dashboard.
 type queryModel struct {
 	Analyze       string   `json:"analyze"`
 	NewReturning  string   `json:"newReturning"`
@@ -30,16 +31,17 @@ type queryModel struct {
 	GroupLimit    string   `json:"groupLimit"`
 	Orbits        []string `json:"orbits"`
 	ActivityTypes []string `json:"activityTypes"`
+	Cumulative    bool     `json:"cumulative"`
 }
 
 type OrbitDatasource struct {
 	client *orbit.Client
 }
 
-// NewSampleDatasource creates a new datasource instance.
+// NewOrbitDatasource creates a new datasource instance.
 func NewOrbitDatasource(settings backend.DataSourceInstanceSettings) (instancemgmt.Instance, error) {
 	var jsonData struct {
-		Workspace string `json:"workspace"`
+		Workspace string `json:"workspacePath"`
 	}
 
 	if err := json.Unmarshal(settings.JSONData, &jsonData); err != nil {
@@ -55,9 +57,6 @@ func NewOrbitDatasource(settings backend.DataSourceInstanceSettings) (instancemg
 	return ds, nil
 }
 
-func (d *OrbitDatasource) Dispose() {
-}
-
 func (d *OrbitDatasource) QueryData(ctx context.Context, req *backend.QueryDataRequest) (*backend.QueryDataResponse, error) {
 	response := backend.NewQueryDataResponse()
 	for _, q := range req.Queries {
@@ -66,7 +65,7 @@ func (d *OrbitDatasource) QueryData(ctx context.Context, req *backend.QueryDataR
 	return response, nil
 }
 
-func (d *OrbitDatasource) query(ctx context.Context, pCtx backend.PluginContext, query backend.DataQuery) backend.DataResponse {
+func (d *OrbitDatasource) query(ctx context.Context, pluginCtx backend.PluginContext, query backend.DataQuery) backend.DataResponse {
 	var response backend.DataResponse
 
 	var qm queryModel
@@ -84,6 +83,7 @@ func (d *OrbitDatasource) query(ctx context.Context, pCtx backend.PluginContext,
 		GroupLimit:    qm.GroupLimit,
 		Orbits:        qm.Orbits,
 		ActivityTypes: qm.ActivityTypes,
+		Cumulative:    qm.Cumulative,
 	}
 
 	fig, err := d.client.Figure(ctx, query.TimeRange.From.Format("2006-01-02"), query.TimeRange.To.Format("2006-01-02"), figQuery)
@@ -105,8 +105,8 @@ func (d *OrbitDatasource) query(ctx context.Context, pCtx backend.PluginContext,
 
 // CheckHealth runs when the user presses "Save & Test" in the data source settings. Tests that the user can access
 // their workspace.
-func (d *OrbitDatasource) CheckHealth(_ context.Context, req *backend.CheckHealthRequest) (*backend.CheckHealthResult, error) {
-	status, err := d.client.Test()
+func (d *OrbitDatasource) CheckHealth(ctx context.Context, req *backend.CheckHealthRequest) (*backend.CheckHealthResult, error) {
+	status, err := d.client.Test(ctx)
 	if err != nil {
 		switch status {
 		case http.StatusNotFound:
@@ -135,33 +135,20 @@ func (d *OrbitDatasource) CheckHealth(_ context.Context, req *backend.CheckHealt
 
 // CallResources exposes a REST API with support operations for the query editor.
 func (d *OrbitDatasource) CallResource(ctx context.Context, req *backend.CallResourceRequest, sender backend.CallResourceResponseSender) error {
-	switch req.Path {
-	case "/activity-types":
-		if req.Method != "GET" {
-			return sender.Send(&backend.CallResourceResponse{
-				Status: http.StatusMethodNotAllowed,
-			})
-		}
-
-		activities, err := d.client.ActivityTypes()
-		if err != nil {
-			return err
-		}
-
-		b, err := json.Marshal(activities)
-		if err != nil {
-			return err
-		}
-
-		return sender.Send(&backend.CallResourceResponse{
-			Status: http.StatusOK,
-			Body:   b,
-		})
-	default:
-		return sender.Send(&backend.CallResourceResponse{
-			Status: http.StatusNotFound,
-		})
+	activities, err := d.client.ActivityTypes(ctx)
+	if err != nil {
+		return err
 	}
+
+	b, err := json.Marshal(activities)
+	if err != nil {
+		return err
+	}
+
+	return sender.Send(&backend.CallResourceResponse{
+		Status: http.StatusOK,
+		Body:   b,
+	})
 }
 
 // figureToWideFrame converts an Orbit figure to a Grafana data frame.
@@ -184,8 +171,6 @@ func figureToWideFrame(figure *orbit.Figure) (*data.Frame, error) {
 	}
 	sort.StringSlice(sortedDates).Sort()
 
-	var fields []*data.Field
-
 	var dateTimes []time.Time
 	for _, date := range sortedDates {
 		t, err := time.Parse("2006-01-02", date)
@@ -195,8 +180,8 @@ func figureToWideFrame(figure *orbit.Figure) (*data.Frame, error) {
 
 		dateTimes = append(dateTimes, t)
 	}
-	fields = append(fields, data.NewField("time", nil, dateTimes))
 
+	var fields []*data.Field
 	// Create fields for each series.
 	for name, series := range series {
 		values := make([]int64, len(sortedDates))
@@ -208,7 +193,15 @@ func figureToWideFrame(figure *orbit.Figure) (*data.Frame, error) {
 		fields = append(fields, data.NewField(name, nil, values))
 	}
 
+	// Sort the fields by name for more consistent styling in Grafana.
+	sort.SliceStable(fields, func(i, j int) bool {
+		return fields[i].Name < fields[j].Name
+	})
+
 	return data.NewFrame(figure.Data.Type,
-		fields...,
+		// Prepend the time field before of the value fields.
+		append([]*data.Field{
+			data.NewField("time", nil, dateTimes),
+		}, fields...)...,
 	), nil
 }

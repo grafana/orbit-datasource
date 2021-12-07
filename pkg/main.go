@@ -6,7 +6,7 @@ import (
 	"github.com/grafana/grafana-plugin-sdk-go/backend"
 	"github.com/grafana/grafana-plugin-sdk-go/backend/datasource"
 	"github.com/grafana/grafana-plugin-sdk-go/backend/log"
-	"github.com/marcusolsson/grafana-orbit-datasource/pkg/plugin"
+	"github.com/grafana/orbit-datasource/pkg/plugin"
 )
 
 const pluginID = "marcusolsson-orbit-datasource"
