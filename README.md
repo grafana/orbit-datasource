@@ -9,18 +9,6 @@ A data source for [Orbit](https://orbit.love) that lets you monitor your communi
 
 - An [Orbit](https://orbit.love) account.
 
-## Install the plugin
-
-**Using Grafana Cloud:**
-
-[Install plugin](https://grafana.com/grafana/plugins/grafana-orbit-datasource/?tab=installation)
-
-**Using Grafana CLI:**
-
-```bash
-grafana-cli --pluginUrl=https://github.com/grafana/orbit-datasource/releases/download/v0.4.0/grafana-orbit-datasource-0.4.0.zip plugins install grafana-orbit-datasource
-```
-
 ## Configure the data source
 
 To configure the Orbit data source you need the _workspace path_ and a _API token_ from Orbit.
