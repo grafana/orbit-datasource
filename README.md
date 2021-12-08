@@ -1,5 +1,8 @@
 # Orbit data source for Grafana
 
+[![CI](https://github.com/grafana/orbit-datasource/actions/workflows/ci.yml/badge.svg)](https://github.com/grafana/orbit-datasource/actions/workflows/ci.yml)
+[![Release](https://github.com/grafana/orbit-datasource/actions/workflows/release.yml/badge.svg)](https://github.com/grafana/orbit-datasource/actions/workflows/release.yml)
+
 A data source for [Orbit](https://orbit.love) that lets you monitor your community with Grafana.
 
 ## Prerequisites
