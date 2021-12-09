@@ -22,7 +22,7 @@
       { "name": "Website", "url": "https://github.com/grafana/orbit-datasource" },
       { "name": "License", "url": "https://github.com/grafana/orbit-datasource/blob/main/LICENSE" }
     ],
-    "screenshots": [{ "name": "Pulse dashboard", "path": "img/screenshot.png" }],
+    "screenshots": [{ "name": "Pulse dashboard", "path": "img/pulse.png" }],
     "version": "%VERSION%",
     "updated": "%TODAY%"
   },
