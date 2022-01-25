@@ -13,13 +13,18 @@ import { QueryEditorProps, SelectableValue } from '@grafana/data';
 import { DataSource } from './datasource';
 import { defaultQuery, OrbitDataSourceOptions, OrbitQuery, Orbits } from './types';
 import { defaults } from 'lodash';
-import { getBackendSrv } from '@grafana/runtime';
-import { map } from 'rxjs/operators';
+
+interface ActivityType {
+  attributes: {
+    short_name: string;
+    key: string;
+  };
+}
 
 type Props = QueryEditorProps<DataSource, OrbitQuery, OrbitDataSourceOptions>;
 
 export const QueryEditor = (props: Props) => {
-  const { onChange, onRunQuery } = props;
+  const { onChange, onRunQuery, datasource } = props;
 
   const query = defaults(props.query, defaultQuery);
 
@@ -252,22 +257,15 @@ export const QueryEditor = (props: Props) => {
               onRunQuery();
             }}
             defaultOptions
-            loadOptions={async (query) => {
-              const options = await getBackendSrv()
-                .fetch<any>({
-                  url: `/api/datasources/${props.datasource.id}/resources/activity-types`,
-                })
-                .pipe(
-                  map((response) => {
-                    return response.data.map((activityType: any) => ({
-                      label: activityType.attributes.short_name,
-                      value: activityType.attributes.key,
-                    }));
-                  })
-                )
-                .toPromise();
+            loadOptions={async () => {
+              const response = (await datasource.getResource('activity-types')) as ActivityType[];
 
-              return options ?? [];
+              return (
+                response.map((activityType) => ({
+                  label: activityType.attributes.short_name,
+                  value: activityType.attributes.key,
+                })) ?? []
+              );
             }}
           />
         </InlineField>

@@ -135,20 +135,27 @@ func (d *OrbitDatasource) CheckHealth(ctx context.Context, req *backend.CheckHea
 
 // CallResources exposes a REST API with support operations for the query editor.
 func (d *OrbitDatasource) CallResource(ctx context.Context, req *backend.CallResourceRequest, sender backend.CallResourceResponseSender) error {
-	activities, err := d.client.ActivityTypes(ctx)
-	if err != nil {
-		return err
-	}
+	switch req.Path {
+	case "activity-types":
+		activities, err := d.client.ActivityTypes(ctx)
+		if err != nil {
+			return err
+		}
 
-	b, err := json.Marshal(activities)
-	if err != nil {
-		return err
-	}
+		b, err := json.Marshal(activities)
+		if err != nil {
+			return err
+		}
 
-	return sender.Send(&backend.CallResourceResponse{
-		Status: http.StatusOK,
-		Body:   b,
-	})
+		return sender.Send(&backend.CallResourceResponse{
+			Status: http.StatusOK,
+			Body:   b,
+		})
+	default:
+		return sender.Send(&backend.CallResourceResponse{
+			Status: http.StatusNotFound,
+		})
+	}
 }
 
 // figureToWideFrame converts an Orbit figure to a Grafana data frame.
