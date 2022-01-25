@@ -1,6 +1,6 @@
 {
   "name": "grafana-orbit-datasource",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A data source for Orbit.",
   "scripts": {
     "build": "grafana-toolkit plugin:build",
