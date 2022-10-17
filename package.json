@@ -12,12 +12,16 @@
   },
   "author": "Grafana Labs",
   "license": "Apache-2.0",
-  "devDependencies": {
-    "tslib": "2.3.1",
-    "@grafana/data": "8.3.4",
-    "@grafana/runtime": "8.3.4",
-    "@grafana/toolkit": "8.3.4",
-    "@grafana/ui": "8.3.4",
+  "dependencies": {
+    "@grafana/data": "9.2.0",
+    "@grafana/runtime": "9.2.0",
+    "@grafana/toolkit": "9.2.0",
+    "@grafana/ui": "9.2.0",
+    "react": "17.0.2",
+    "react-dom": "17.0.2",
+    "tslib": "2.3.1"
+  },
+  "devDependencies": {    
     "@types/lodash": "latest"
   },
   "engines": {

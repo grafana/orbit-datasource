@@ -1,10 +1,9 @@
 # Changelog
 
-## 0.1.1 (Unreleased)
-
+## 0.1.1
 ### Enhancements
 
-- Update @grafana packages to 8.3.4.
+- Update @grafana packages to `9.2.0`
 
 ## 0.1.0
 
